@@ -5,11 +5,11 @@ Plugin Name: WPU Super Editor
 Plugin URI: https://github.com/WordPressUtilities/wpu_super_editor
 Update URI: https://github.com/WordPressUtilities/wpu_super_editor
 Description: A WordPress Editor role which can handle users
-Version: 0.1.0
+Version: 0.2.0
 Author: Darklg
 Author URI: https://darklg.me/
 Text Domain: wpu_super_editor
-Requires at least: 6.0
+Requires at least: 6.2
 Requires PHP: 8.0
 License: MIT License
 License URI: https://opensource.org/licenses/MIT
@@ -62,6 +62,9 @@ add_action('init', function () {
     $role_details['delete_product_terms'] = true;
     $role_details['assign_product_terms'] = true;
 
+    /* Additional roles */
+    $role_details = apply_filters('wpu_super_editor__roles', $role_details);
+
     /* Yoast SEO */
     $role_details['wpseo_bulk_edit'] = true;
     $role_details['wpseo_edit_advanced_metadata'] = true;
@@ -89,9 +92,15 @@ add_action('admin_menu', function () {
     if (current_user_can('activate_plugins')) {
         return;
     }
+
     /* Remove menus */
     remove_menu_page('tools.php');
     remove_submenu_page('themes.php', 'themes.php');
+    remove_menu_page('options-general.php');
+
+    /* Custom plugins */
+    remove_menu_page('edit.php?post_type=acf-field-group');
+
     /* Remove some theme parts */
     if (isset($submenu['themes.php'])) {
         foreach ($submenu['themes.php'] as $i => $item) {
@@ -99,6 +108,18 @@ add_action('admin_menu', function () {
                 unset($submenu['themes.php'][$i]);
             }
         }
+    }
+});
+
+add_action('admin_init', function () {
+    if (current_user_can('activate_plugins')) {
+        return;
+    }
+    if (!isset($_SERVER['REQUEST_URI'])) {
+        return;
+    }
+    if (strpos($_SERVER['REQUEST_URI'], 'options-general.php') !== false) {
+        wp_redirect(admin_url('index.php'));
     }
 });
 
@@ -190,4 +211,27 @@ add_action('delete_user', function ($user_id) {
         return;
     }
     wp_die("User is an administrator and cant be deleted by a non-administrator.");
+});
+
+/* ----------------------------------------------------------
+  Plugins
+---------------------------------------------------------- */
+
+/* Redirection
+-------------------------- */
+
+add_action('admin_menu', function () {
+    if (!defined('REDIRECTION_DB_VERSION')) {
+        return;
+    }
+    add_menu_page(
+        __('Redirection', 'wpu_super_editor'),
+        __('Redirection', 'wpu_super_editor'),
+        'list_users',
+        'tools.php?page=redirection.php'
+    );
+});
+
+add_filter('redirection_role', function ($role) {
+    return 'list_users';
 });
