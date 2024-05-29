@@ -1,16 +1,18 @@
 <?php
+defined('ABSPATH') || die;
 
 /*
 Plugin Name: WPU Super Editor
 Plugin URI: https://github.com/WordPressUtilities/wpu_super_editor
 Update URI: https://github.com/WordPressUtilities/wpu_super_editor
 Description: A WordPress Editor role which can handle users
-Version: 0.2.1
+Version: 0.2.2
 Author: Darklg
 Author URI: https://darklg.me/
 Text Domain: wpu_super_editor
 Requires at least: 6.2
 Requires PHP: 8.0
+Network: Optional
 License: MIT License
 License URI: https://opensource.org/licenses/MIT
 */
@@ -168,6 +170,10 @@ add_action('current_screen', function () {
         $user_id = $_GET['user'];
     }
 
+    if ($screen->base == 'users' && isset($_GET['action'], $_GET['users']) && ctype_digit($_GET['users']) && $_GET['action'] == 'resetpassword') {
+        $user_id = $_GET['users'];
+    }
+
     if (!$user_id) {
         return;
     }
@@ -190,7 +196,7 @@ add_action('current_screen', function () {
  * @return boolean
  */
 function wpu_super_editor_is_user_admin($user_id) {
-    if (!ctype_digit($user_id)) {
+    if (!ctype_digit($user_id) && !is_int($user_id)) {
         return false;
     }
     /* Get user details */
@@ -201,6 +207,26 @@ function wpu_super_editor_is_user_admin($user_id) {
 
     return in_array('administrator', $user_page->roles, true);
 }
+
+/* Prevent access to invalid actions
+-------------------------- */
+
+add_filter('user_row_actions', function ($actions, $user) {
+    if (current_user_can('administrator')) {
+        return $actions;
+    }
+
+    if (wpu_super_editor_is_user_admin($user->ID)) {
+        if (!isset($actions['view'])) {
+            $actions = array();
+        } else {
+            $actions = array('view' => $actions['view']);
+        }
+        return $actions;
+    }
+
+    return $actions;
+}, 99, 2);
 
 /* Prevent user deletion
 -------------------------- */
