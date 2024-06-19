@@ -1,0 +1,2 @@
+<?php
+return ['domain'=>NULL,'plural-forms'=>NULL,'messages'=>['A WordPress Editor role which can handle users'=>'Un rôle d’éditeur WordPress qui peut gérer les utilisateurs','Redirection'=>'Redirection'],'language'=>'fr_FR','x-generator'=>'Poedit 3.4.4'];

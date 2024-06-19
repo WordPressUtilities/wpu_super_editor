@@ -6,7 +6,7 @@ Plugin Name: WPU Super Editor
 Plugin URI: https://github.com/WordPressUtilities/wpu_super_editor
 Update URI: https://github.com/WordPressUtilities/wpu_super_editor
 Description: A WordPress Editor role which can handle users
-Version: 0.2.2
+Version: 0.2.3
 Author: Darklg
 Author URI: https://darklg.me/
 Text Domain: wpu_super_editor
@@ -126,6 +126,17 @@ add_action('admin_init', function () {
 });
 
 /* ----------------------------------------------------------
+  Load translation
+---------------------------------------------------------- */
+
+add_action('plugins_loaded', function () {
+    if (!load_plugin_textdomain('wpu_super_editor', false, dirname(plugin_basename(__FILE__)) . '/lang/')) {
+        load_muplugin_textdomain('wpu_super_editor', dirname(plugin_basename(__FILE__)) . '/lang/');
+    }
+    $plugin_description = __('A WordPress Editor role which can handle users', 'wpu_super_editor');
+});
+
+/* ----------------------------------------------------------
   Only an admin can add a new admin
 ---------------------------------------------------------- */
 
@@ -162,15 +173,15 @@ add_action('current_screen', function () {
 
     $user_id = false;
 
-    if ($screen->base == 'user-edit' && isset($_GET['user_id']) && ctype_digit($_GET['user_id'])) {
+    if ($screen->base == 'user-edit' && isset($_GET['user_id']) && is_numeric($_GET['user_id'])) {
         $user_id = $_GET['user_id'];
     }
 
-    if ($screen->base == 'users' && isset($_GET['action'], $_GET['user']) && ctype_digit($_GET['user']) && $_GET['action'] == 'delete') {
+    if ($screen->base == 'users' && isset($_GET['action'], $_GET['user']) && is_numeric($_GET['user']) && $_GET['action'] == 'delete') {
         $user_id = $_GET['user'];
     }
 
-    if ($screen->base == 'users' && isset($_GET['action'], $_GET['users']) && ctype_digit($_GET['users']) && $_GET['action'] == 'resetpassword') {
+    if ($screen->base == 'users' && isset($_GET['action'], $_GET['users']) && is_numeric($_GET['users']) && $_GET['action'] == 'resetpassword') {
         $user_id = $_GET['users'];
     }
 
@@ -179,7 +190,7 @@ add_action('current_screen', function () {
     }
 
     /* Only on administrator pages */
-    if (!isset($user_id) || !ctype_digit($user_id)) {
+    if (!isset($user_id) || !is_numeric($user_id)) {
         return;
     }
 
@@ -196,7 +207,7 @@ add_action('current_screen', function () {
  * @return boolean
  */
 function wpu_super_editor_is_user_admin($user_id) {
-    if (!ctype_digit($user_id) && !is_int($user_id)) {
+    if (!is_numeric($user_id) && !is_int($user_id)) {
         return false;
     }
     /* Get user details */
