@@ -6,7 +6,7 @@ Plugin Name: WPU Super Editor
 Plugin URI: https://github.com/WordPressUtilities/wpu_super_editor
 Update URI: https://github.com/WordPressUtilities/wpu_super_editor
 Description: A WordPress Editor role which can handle users
-Version: 0.2.3
+Version: 0.3.0
 Author: Darklg
 Author URI: https://darklg.me/
 Text Domain: wpu_super_editor
@@ -112,6 +112,9 @@ add_action('admin_menu', function () {
         }
     }
 });
+
+/* Prevent access to options-general.php
+-------------------------- */
 
 add_action('admin_init', function () {
     if (current_user_can('activate_plugins')) {
@@ -281,3 +284,22 @@ add_filter('option_happyfiles_folder_access', function ($values) {
     }
     return $values;
 }, 10, 1);
+
+/* ----------------------------------------------------------
+  Allow more user roles to edit private policy page
+---------------------------------------------------------- */
+
+/* Thx to https://wordpress.stackexchange.com/a/325784 */
+
+add_action('map_meta_cap', function ($caps, $cap, $user_id, $args) {
+
+    if ($cap != 'manage_privacy_options' || !$user_id || !is_user_logged_in()) {
+        return $caps;
+    }
+
+    if (current_user_can('delete_users')) {
+        $manage_name = is_multisite() ? 'manage_network' : 'manage_options';
+        $caps = array_diff($caps, [$manage_name]);
+    }
+    return $caps;
+}, 1, 4);
