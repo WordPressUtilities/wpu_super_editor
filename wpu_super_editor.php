@@ -6,7 +6,7 @@ Plugin Name: WPU Super Editor
 Plugin URI: https://github.com/WordPressUtilities/wpu_super_editor
 Update URI: https://github.com/WordPressUtilities/wpu_super_editor
 Description: A WordPress Editor role which can handle users
-Version: 0.3.0
+Version: 0.3.1
 Author: Darklg
 Author URI: https://darklg.me/
 Text Domain: wpu_super_editor
@@ -303,3 +303,14 @@ add_action('map_meta_cap', function ($caps, $cap, $user_id, $args) {
     }
     return $caps;
 }, 1, 4);
+
+/* ----------------------------------------------------------
+  Disable CSS personalization for non-admins
+---------------------------------------------------------- */
+
+add_action('customize_register', function ($wp_customize) {
+    if (current_user_can('administrator')) {
+        return;
+    }
+    $wp_customize->remove_section('custom_css');
+}, 99);
