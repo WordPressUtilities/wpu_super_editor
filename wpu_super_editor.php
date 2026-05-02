@@ -6,7 +6,7 @@ Plugin Name: WPU Super Editor
 Plugin URI: https://github.com/WordPressUtilities/wpu_super_editor
 Update URI: https://github.com/WordPressUtilities/wpu_super_editor
 Description: A WordPress Editor role which can handle users
-Version: 0.4.2
+Version: 0.4.3
 Author: Darklg
 Author URI: https://darklg.me/
 Text Domain: wpu_super_editor
@@ -35,6 +35,9 @@ add_action('init', function () {
 
     /* Start on editor role */
     $editor_role = get_role('editor');
+    if (!$editor_role) {
+        return;
+    }
     $role_details = $editor_role->capabilities;
 
     /* Add new capacities */
@@ -161,7 +164,7 @@ add_action('after_setup_theme', function () {
     } else {
         load_plugin_textdomain('wpu_super_editor', false, $lang_dir);
     }
-    $plugin_description = __('A WordPress Editor role which can handle users', 'wpu_super_editor');
+    __('A WordPress Editor role which can handle users', 'wpu_super_editor');
 });
 
 /* ----------------------------------------------------------
@@ -209,8 +212,9 @@ add_action('current_screen', function () {
         $user_id = $_GET['user'];
     }
 
-    if ($screen->base == 'users' && isset($_GET['action'], $_GET['users']) && ($_GET['action'] == 'delete' || $_GET['action'] == 'resetpassword')) {
-        foreach ($_GET['users'] as $user_id) {
+    if ($screen->base == 'users' && isset($_GET['action'], $_GET['users']) && ($_GET['action'] == 'delete' || $_GET['action'] == 'resetpassword') && is_array($_GET['users'])) {
+        $user_ids = array_map('absint', wp_unslash($_GET['users']));
+        foreach ($user_ids as $user_id) {
             if (wpu_super_editor_is_user_admin($user_id)) {
                 wp_redirect(admin_url('users.php'));
                 die;
