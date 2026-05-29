@@ -6,7 +6,7 @@ Plugin Name: WPU Super Editor
 Plugin URI: https://github.com/WordPressUtilities/wpu_super_editor
 Update URI: https://github.com/WordPressUtilities/wpu_super_editor
 Description: A WordPress Editor role which can handle users
-Version: 0.4.3
+Version: 0.4.4
 Author: Darklg
 Author URI: https://darklg.me/
 Text Domain: wpu_super_editor
@@ -306,15 +306,16 @@ add_filter('option_happyfiles_folder_access', function ($values) {
 
 /* Thx to https://wordpress.stackexchange.com/a/325784 */
 
-add_action('map_meta_cap', function ($caps, $cap, $user_id, $args) {
+add_filter('map_meta_cap', function ($caps, $cap, $user_id, $args) {
 
-    if ($cap != 'manage_privacy_options' || !$user_id || !is_user_logged_in()) {
+    if ('manage_privacy_options' !== $cap || !is_user_logged_in()) {
         return $caps;
     }
 
-    if (current_user_can('delete_users')) {
-        $manage_name = is_multisite() ? 'manage_network' : 'manage_options';
-        $caps = array_diff($caps, [$manage_name]);
+    $user = get_userdata($user_id);
+
+    if ($user && user_can($user, 'edit_others_pages')) {
+        return ['edit_others_pages'];
     }
     return $caps;
 }, 1, 4);
